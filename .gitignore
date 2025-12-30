@@ -28,7 +28,7 @@ cookies.txt
 *.pt
 *.onnx
 *.tflite
-models/
+# models/
 
 # --- Video/Audio Files (Root) ---
 *.mp4
@@ -38,6 +38,7 @@ models/
 *.mp3
 *.wav
 *.aac
+!.gitkeep
 *.srt
 *.vtt
 
