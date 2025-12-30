@@ -1,13 +1,47 @@
-# Video files
-*.mp4
-
-# YOLO model
-*.pt
-
-# Python virtual environment
-.venv/
+# --- Python & Environment ---
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.env
 
-# Temporary files
-temp_*.mp4
+# --- IDEs & Editors ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OS Metadata ---
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# --- Project Outputs ---
+output/
+downloads/
+uploads/
+cookies.txt
+
+# --- AI Models ---
+*.pt
+*.onnx
+*.tflite
+models/
+
+# --- Video/Audio Files (Root) ---
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.mp3
+*.wav
+*.aac
+*.srt
+*.vtt
+
+# --- Logs & Temp ---
+*.log
+temp_*
+yolov8n.pt

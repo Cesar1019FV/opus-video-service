@@ -1,6 +1,20 @@
-opencv-python
-scenedetect[opencv]
-ultralytics
-torch
-torchvision
+# Core CV / ML
+opencv-python>=4.8.0,<5.0.0
+ultralytics>=8.2.0
+
+# Video processing
+moviepy==1.0.3
+scenedetect>=0.6.2
+yt-dlp>=2024.3.10
+
+# Audio / AI
+faster-whisper>=1.0.3
+
+# Utilities
 tqdm
+rich
+python-dotenv
+google-genai
+
+# Critical dependency (DO NOT DOWNGRADE)
+protobuf>=4.21.0,<6.0.0
