@@ -60,14 +60,16 @@ def main_menu():
 [bold magenta]4.[/] 🎨 Editor: Formatos Verticales (Split/Blur)
 [bold yellow]5.[/] ✨ Editor: Agregar Efectos 'Hook' (Zoom/Flash)
 [bold red]6.[/] 🎵 Audio: Agregar Música de Fondo
-[bold red]7.[/] 🚪 Salir
+[bold cyan]7.[/] ⚡ Velocidad: Acelerar / Ralentizar
+[bold cyan]8.[/] � Audio: Quitar Sonido (Mute)
+[bold red]9.[/] �🚪 Salir
         """
         
         console.print(Panel(menu_text, title="🔥 Opus Video Service - Menú Principal", border_style="blue", expand=False))
         
-        choice = Prompt.ask("Selecciona una opción", choices=["1", "2", "3", "4", "5", "6", "7"], default="2")
+        choice = Prompt.ask("Selecciona una opción", choices=["1", "2", "3", "4", "5", "6", "7", "8", "9"], default="2")
         
-        if choice == '7':
+        if choice == '9':
             console.print("[bold red]¡Adiós![/]")
             sys.exit(0)
             
@@ -350,7 +352,118 @@ def run_job_ui(mode):
         return
 
     elif mode == '6':
-        # ... (lines 348-410 omitted) ...
+        # Add Music Workflow
+        input_path = select_video_file("Video Principal")
+        if not input_path:
+            Prompt.ask("\nPresiona Enter para volver...")
+            return
+            
+        music_path = select_music_file()
+        if not music_path:
+            Prompt.ask("\nPresiona Enter para volver...")
+            return
+            
+        vol = Prompt.ask("Volumen de música (0.0 a 1.0)", default="0.3")
+        try:
+            vol = float(vol)
+        except:
+            vol = 0.3
+            
+        final_path, temp_path = get_save_path(input_path, "music")
+        write_path = temp_path if temp_path else final_path
+        
+        if not Confirm.ask("¿Proceder con Renderizado?", default=True): 
+            return
+            
+        try:
+            from src.features.audio.service import add_background_music_overlay
+            with console.status("[bold red]🎵 Mezclando audio...[/]", spinner="wave"):
+                add_background_music_overlay(input_path, music_path, write_path, music_volume=vol)
+            
+            finalize_output(temp_path, final_path)
+            console.print(f"[bold green]✨ Video listo: {final_path}[/]")
+        except Exception as e:
+            console.print(f"[bold red]❌ Error: {e}[/]")
+            
+        Prompt.ask("\nPresiona Enter para continuar...")
+        return
+
+    elif mode == '7':
+        # Video Speed adjustment
+        input_path = select_video_file("Video para Ajustar Velocidad")
+        if not input_path:
+            Prompt.ask("\nPresiona Enter para volver...")
+            return
+            
+        console.print("\n[bold cyan]Selecciona el Factor de Velocidad:[/]")
+        console.print("1. [yellow]0.5x[/] (Cámara Lenta)")
+        console.print("2. [yellow]0.75x[/] (Suave)")
+        console.print("3. [green]1.1x[/] (Retención Ligera - Recomendado)")
+        console.print("4. [green]1.25x[/] (Dinámico)")
+        console.print("5. [magenta]1.5x[/] (Rápido)")
+        console.print("6. [red]2.0x[/] (Doble Velocidad)")
+        console.print("7. [cyan]Personalizado[/]")
+        
+        speed_choice = Prompt.ask("Opción", choices=["1", "2", "3", "4", "5", "6", "7"], default="3")
+        
+        factors = {
+            "1": 0.5,
+            "2": 0.75,
+            "3": 1.1,
+            "4": 1.25,
+            "5": 1.5,
+            "6": 2.0
+        }
+        
+        if speed_choice == "7":
+            factor = Prompt.ask("Ingresa el multiplicador (e.g., 1.12)", default="1.1")
+            try:
+                factor = float(factor)
+            except:
+                factor = 1.1
+        else:
+            factor = factors[speed_choice]
+            
+        final_path, temp_path = get_save_path(input_path, f"speed_{factor}x")
+        write_path = temp_path if temp_path else final_path
+        
+        try:
+            from src.features.effects.speed import change_video_speed
+            with console.status(f"[bold cyan]⚡ Ajustando velocidad a {factor}x...[/]", spinner="runner"):
+                change_video_speed(input_path, write_path, factor)
+                
+            finalize_output(temp_path, final_path)
+            console.print(f"[bold green]✨ Video listo: {final_path}[/]")
+        except Exception as e:
+            console.print(f"[bold red]❌ Error: {e}[/]")
+            
+        Prompt.ask("\nPresiona Enter para continuar...")
+        return
+
+    elif mode == '8':
+        # Mute video
+        input_path = select_video_file("Video para Quitar Audio")
+        if not input_path:
+            Prompt.ask("\nPresiona Enter para volver...")
+            return
+            
+        final_path, temp_path = get_save_path(input_path, "mute")
+        write_path = temp_path if temp_path else final_path
+        
+        if not Confirm.ask("¿Confirmas que quieres quitar TODO el sonido?", default=True):
+            return
+            
+        try:
+            from src.features.audio.mute import remove_audio
+            with console.status("[bold cyan]🔇 Quitando audio...[/]", spinner="dots"):
+                remove_audio(input_path, write_path)
+                
+            finalize_output(temp_path, final_path)
+            console.print(f"[bold green]✨ Video sin audio listo: {final_path}[/]")
+        except Exception as e:
+            console.print(f"[bold red]❌ Error: {e}[/]")
+            
+        Prompt.ask("\nPresiona Enter para continuar...")
         return
 
     # Options (Only for Mode 1 & 2)
