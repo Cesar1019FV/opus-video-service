@@ -1,4 +1,5 @@
 from faster_whisper import WhisperModel
+import os
 
 def transcribe_video(video_path, model_size="base", device="cpu", compute_type="int8"):
     """
@@ -6,6 +7,9 @@ def transcribe_video(video_path, model_size="base", device="cpu", compute_type="
     Returns a dictionary with full text, segments, and language info.
     """
     # print(f"🎙️  Transcribing video with Faster-Whisper ({model_size} on {device})...")
+    
+    # Ideally we'd use config defaults here, but for now we keep the signature 
+    # compatible with the caller which likely pulls from config.
     
     model = WhisperModel(model_size, device=device, compute_type=compute_type)
     
