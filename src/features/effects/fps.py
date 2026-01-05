@@ -25,7 +25,7 @@ def convert_to_60fps(
     cmd = [
         "ffmpeg", "-y",
         "-i", input_path,
-        "-vf", "fps=60",
+        "-vf", "fps=70",
         "-c:v", "libx264",
         "-preset", "fast",
         "-crf", "23",

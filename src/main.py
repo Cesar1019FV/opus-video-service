@@ -21,10 +21,10 @@ def main():
 # effectively making src/main.py a facade for the new modular architecture.
 try:
     from src.workflows.pipeline import run_pipeline
-    from src.workflows.use_cases import run_subtitles_only
+    from src.workflows.use_cases import run_subtitles_only, remove_video_silences
 except ImportError:
     # If run standalone or strictly for CLI, these might not be needed immediately,
     # but practically they should exist.
     pass
 
-__all__ = ['main', 'run_pipeline', 'run_subtitles_only']
+__all__ = ['main', 'run_pipeline', 'run_subtitles_only', 'remove_video_silences']

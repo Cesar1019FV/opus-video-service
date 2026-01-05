@@ -64,14 +64,15 @@ def main_menu():
 [bold cyan]7.[/] ⚡ Velocidad: Acelerar / Ralentizar
 [bold cyan]8.[/] 🔇 Audio: Quitar Sonido (Mute)
 [bold magenta]9.[/] 🎞️  60 FPS: Convertir a Sesenta
-[bold red]10.[/] 🚪 Salir
+[bold yellow]10.[/] ✂️  Audio: Eliminar Silencios (Auto-trim)
+[bold red]11.[/] 🚪 Salir
         """
         
         console.print(Panel(menu_text, title="🔥 Opus Video Service - Menú Principal", border_style="blue", expand=False))
         
-        choice = Prompt.ask("Selecciona una opción", choices=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"], default="2")
+        choice = Prompt.ask("Selecciona una opción", choices=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"], default="2")
         
-        if choice == '10':
+        if choice == '11':
             console.print("[bold red]¡Adiós![/]")
             sys.exit(0)
             
@@ -509,6 +510,45 @@ def run_job_ui(mode):
                 
             finalize_output(temp_path, final_path)
             console.print(f"[bold green]✨ Video a 60fps listo: {final_path}[/]")
+        except Exception as e:
+            console.print(f"[bold red]❌ Error: {e}[/]")
+            
+    elif mode == '10':
+        # Remove Silences
+        input_path = select_video_file("Video para Eliminar Silencios")
+        if not input_path:
+            Prompt.ask("\nPresiona Enter para volver...")
+            return
+            
+        final_path, temp_path = get_save_path(input_path, "trimmed")
+        write_path = temp_path if temp_path else final_path
+        
+        console.print("\n[bold yellow]Configuración de Silencio:[/]")
+        duration = Prompt.ask("Duración mínima de silencio (ms)", default="1500")
+        padding = Prompt.ask("Margen de audio (padding ms)", default="500")
+        
+        try:
+            duration = int(duration)
+            padding = int(padding)
+        except:
+            duration = 1500
+            padding = 500
+            
+        if not Confirm.ask("¿Proceder con la eliminación de silencios?", default=True):
+            return
+            
+        try:
+            from src.main import remove_video_silences
+            with console.status("[bold cyan]✂️  Eliminando silencios...[/]", spinner="bouncingBall"):
+                remove_video_silences(
+                    input_path=input_path, 
+                    output_path=write_path,
+                    silence_duration=duration,
+                    padding=padding
+                )
+                
+            finalize_output(temp_path, final_path)
+            console.print(f"[bold green]✨ Video recordado listo: {final_path}[/]")
         except Exception as e:
             console.print(f"[bold red]❌ Error: {e}[/]")
             

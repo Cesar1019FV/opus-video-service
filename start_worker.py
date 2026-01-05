@@ -81,6 +81,8 @@ def check_dependencies():
         ('faster_whisper', 'faster-whisper'),
         ('yt_dlp', 'yt-dlp'),
         ('google.genai', 'google-genai'),
+        ('pydub', 'pydub'),
+        ('numpy', 'numpy'),
         ('rich.console', 'rich')  # Check specific submodule for rich
     ]
     

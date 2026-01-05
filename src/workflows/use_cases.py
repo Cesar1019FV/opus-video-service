@@ -246,3 +246,34 @@ def add_hook_effect_to_video(
     
     console.print(f"[bold green]✅ Complete: {output_path}[/]")
 
+
+def remove_video_silences(
+    input_path: str,
+    output_path: str,
+    silence_duration: int = 1500,
+    padding: int = 500
+):
+    """
+    Remove silent parts from a video.
+    
+    Args:
+        input_path: Source video
+        output_path: Output path
+        silence_duration: Minimum silence duration in ms
+        padding: Padding in ms around speech
+    """
+    from src.features.audio.silence import remove_silences
+    from rich.console import Console
+    
+    console = Console()
+    console.print("[bold cyan]✂️  Removing silences...[/]")
+    
+    remove_silences(
+        input_path=input_path,
+        output_path=output_path,
+        silence_duration=silence_duration,
+        padding=padding
+    )
+    
+    console.print(f"[bold green]✅ Complete: {output_path}[/]")
+

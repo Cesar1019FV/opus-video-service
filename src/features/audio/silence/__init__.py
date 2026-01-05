@@ -1,0 +1,1 @@
+from .processor import remove_silences_from_video as remove_silences
