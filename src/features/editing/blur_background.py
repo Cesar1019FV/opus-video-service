@@ -104,7 +104,7 @@ def make_blur_background_vertical_video(
         main = apply_effect_to_clip(
             main, 
             effect_type, 
-            size=(main.w, main.h), 
+            size=(FINAL_W, FINAL_H), # Passing container size correctly
             final_y_pos=center_y,
             extra_layer_list=layers # Flash adds to layers
         )

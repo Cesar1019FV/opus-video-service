@@ -75,55 +75,22 @@ def make_vertical_split_video(
     bottom_resized = bottom_resized.set_position((0, HALF_H))
 
     # ---------------- EFFECT APPLICATION ----------------
-    layers = [bottom_resized, top_resized] # Bottom first
-    
+    composite_layers = [bottom_resized]
+
     if effect_type:
         # Use our robust apply_effect_to_clip which handles extra layers (flash)
         # and positioning for slides
-        
-        # Note: top_resized is at (0,0). For slide, final_y_pos is 0.
         top_resized = apply_effect_to_clip(
-            top_resized, 
-            effect_type, 
-            size=(FINAL_W, HALF_H), 
+            top_resized,
+            effect_type,
+            size=(FINAL_W, HALF_H),
             final_y_pos=0,
-            extra_layer_list=layers
+            extra_layer_list=composite_layers 
         )
-        
         # Re-ensure position for effects that don't set it (Zoom/Flash)
         if effect_type in ['1', '2']: 
              top_resized = top_resized.set_position((0,0))
              
-    # Update logic in case effect returned a new clip object but layers list was updated in place
-    # Start fresh helper list for composite
-    # layers already contains [bottom, top] (plus flash if added)
-    # But we need to make sure 'top_resized' (which might be modified) is the one in the list
-    
-    # Re-build layers list to be safe
-    final_layers = [bottom_resized, top_resized]
-    
-    # If flash was added to 'layers' passed to function, extract it
-    # This is a bit tricky with list mutation.
-    # The 'layers' list passed to apply_effect was mutated if flash was added.
-    # So 'layers' now has [bottom, top, flash].
-    # But 'top' in that list is the OLD top. We need the NEW top_resized.
-    
-    # Better approach:
-    # 1. Create list [bottom]
-    # 2. Apply effect (passing that list) -> adds flash if needed
-    # 3. Add modified top to that list
-    
-    composite_layers = [bottom_resized]
-    top_resized = apply_effect_to_clip(
-        top_resized,
-        effect_type,
-        size=(FINAL_W, HALF_H),
-        final_y_pos=0,
-        extra_layer_list=composite_layers 
-    )
-    if effect_type in ['1', '2']:
-        top_resized = top_resized.set_position((0,0))
-        
     composite_layers.append(top_resized)
 
     # ---------------- COMPOSE ----------------

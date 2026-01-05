@@ -269,12 +269,24 @@ def get_entry_effect_choice():
     if not Confirm.ask("✨ ¿Quieres agregar un efecto de entrada 'Hook'?", default=False):
         return None
         
-    console.print("\n[bold magenta]Selecciona un Efecto de Entrada:[/]")
-    console.print("1. [cyan]Zoom Punch + Focus[/] (Estilo TikTok clásico)")
-    console.print("2. [cyan]Flash In + Punch[/] (Agresivo)")
-    console.print("3. [cyan]Slide In Top + Zoom[/] (Gaming/Dinámico)")
+    from src.features.effects import EFFECTS
     
-    return Prompt.ask("Opción", choices=["1", "2", "3"], default="1")
+    console.print("\n[bold magenta]Selecciona un Efecto de Entrada:[/]")
+    for key, name in EFFECTS.items():
+        console.print(f"{key}. [cyan]{name}[/]")
+    
+    return Prompt.ask("Opción", choices=list(EFFECTS.keys()), default="1")
+
+
+def get_subtitle_style_choice():
+    """Helper to ask for subtitle style"""
+    from src.features.subtitles.styles import SUBTITLE_STYLES
+    
+    console.print("\n[bold yellow]Estilo de Subtítulos:[/]")
+    for key, config in SUBTITLE_STYLES.items():
+        console.print(f"- [cyan]{key}[/]: {config['name']}")
+        
+    return Prompt.ask("Elige un estilo", choices=list(SUBTITLE_STYLES.keys()), default="default")
 
 
 def clear_screen():

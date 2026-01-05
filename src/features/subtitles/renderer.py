@@ -38,7 +38,7 @@ class SubtitleRenderer:
                 # Ideally word-level is fast, but 0.1s might be too fast?
                 # Let's stick to exact timestamps for "dynamic" feel.
                 
-                text = word['word'].strip()
+                text = word['word'].strip().upper()
                 srt_content += self._format_srt_block(index, start, end, text)
                 index += 1
                 
@@ -61,7 +61,7 @@ class SubtitleRenderer:
                     if current_text_len + len(word['word']) > max_chars or duration > max_duration:
                         block_end = current_block[-1]['end'] - clip_start
                         
-                        text = " ".join([w['word'] for w in current_block]).strip()
+                        text = " ".join([w['word'] for w in current_block]).strip().upper()
                         srt_content += self._format_srt_block(index, block_start, block_end, text)
                         index += 1
                         
@@ -72,7 +72,7 @@ class SubtitleRenderer:
             
             if current_block:
                 block_end = current_block[-1]['end'] - clip_start
-                text = " ".join([w['word'] for w in current_block]).strip()
+                text = " ".join([w['word'] for w in current_block]).strip().upper()
                 srt_content += self._format_srt_block(index, block_start, block_end, text)
             
         with open(output_path, 'w', encoding='utf-8') as f:
@@ -90,12 +90,18 @@ class SubtitleRenderer:
             
         return f"{index}\n{format_time(start)} --> {format_time(end)}\n{text}\n\n"
 
-    def burn_subtitles_to_video(self, video_path, srt_path, output_path, alignment="bottom", fontsize=16):
+    def burn_subtitles_to_video(self, video_path, srt_path, output_path, alignment="bottom", fontsize=16, style_name="default"):
         """
-        Burns subtitles into the video using FFmpeg.
+        Burns subtitles into the video using FFmpeg with selectable styles.
         """
-        final_fontsize = int(fontsize * 0.5) 
-        if final_fontsize < 8: final_fontsize = 8
+        from .styles import SUBTITLE_STYLES
+        
+        # Get style config, fallback to default
+        style_config = SUBTITLE_STYLES.get(style_name, SUBTITLE_STYLES['default'])
+        
+        # Font size multiplier increased for better visibility
+        final_fontsize = int(fontsize * 1)   # CHANGE THIS PARAMETER TO ADJUST SUBTITLE SIZE
+        if final_fontsize < 12: final_fontsize = 12
 
         ass_alignment = 2 # Default Bottom
         if str(alignment).lower() == 'top': ass_alignment = 6
@@ -119,7 +125,18 @@ class SubtitleRenderer:
             subprocess.run(cmd_copy, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
             return True
 
-        style_string = f"Alignment={ass_alignment},Fontname=Verdana,Fontsize={final_fontsize},PrimaryColour=&H00FFFFFF,OutlineColour=&H60000000,BackColour=&H00000000,BorderStyle=3,Outline=1,Shadow=0,MarginV=25,Bold=1"
+        # Build style string dynamically from config
+        parts = [
+            f"Alignment={ass_alignment}",
+            f"Fontsize={final_fontsize}"
+        ]
+        
+        # Add all style config items except 'name'
+        for key, value in style_config.items():
+            if key == 'name': continue
+            parts.append(f"{key}={value}")
+            
+        style_string = ",".join(parts)
         
         cmd = [
             'ffmpeg', '-y',

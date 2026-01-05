@@ -52,7 +52,8 @@ class ViralClipsPipeline:
         use_subs: bool = False,
         skip_analysis: bool = False,
         alignment: str = "bottom",
-        single_word: bool = False
+        single_word: bool = False,
+        style_name: str = "default"
     ):
         """
         Execute the viral clips pipeline on a local video file.
@@ -98,7 +99,8 @@ class ViralClipsPipeline:
                         use_subs,
                         alignment,
                         f"clip_{i}",
-                        single_word
+                        single_word,
+                        style_name
                     )
             except Exception as e:
                 console.print(f"[bold red]❌ AI Analysis failed: {e}[/]")
@@ -120,7 +122,8 @@ class ViralClipsPipeline:
                 use_subs,
                 alignment,
                 "full_video",
-                single_word
+                single_word,
+                style_name
             )
         
         console.print(f"\n[bold green]✨ Pipeline complete![/]")
@@ -135,7 +138,8 @@ class ViralClipsPipeline:
         use_subs: bool,
         alignment: str,
         clip_name: str,
-        single_word: bool = False
+        single_word: bool = False,
+        style_name: str = "default"
     ):
         """Process a single clip: crop and optionally add subtitles"""
         from rich.console import Console
@@ -173,7 +177,8 @@ class ViralClipsPipeline:
                 cropped_path,
                 srt_path,
                 final_path,
-                alignment
+                alignment,
+                style_name=style_name
             )
             
             console.print(f"  [bold green]✅ Saved: {final_path}[/]")
@@ -188,8 +193,9 @@ def run_pipeline(
     use_subs: bool = False,
     skip_analysis: bool = False,
     alignment: str = "bottom",
-    single_word: bool = False
+    single_word: bool = False,
+    style_name: str = "default"
 ):
     """Legacy function maintaining updated signature"""
     pipeline = ViralClipsPipeline()
-    pipeline.run(input_path, output_dir, use_subs, skip_analysis, alignment, single_word)
+    pipeline.run(input_path, output_dir, use_subs, skip_analysis, alignment, single_word, style_name)

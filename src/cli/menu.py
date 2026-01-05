@@ -19,6 +19,7 @@ from .helpers import (
     finalize_output,
     get_video_from_input_dir,
     get_entry_effect_choice,
+    get_subtitle_style_choice,
     clear_screen
 )
 
@@ -61,15 +62,16 @@ def main_menu():
 [bold yellow]5.[/] ✨ Editor: Agregar Efectos 'Hook' (Zoom/Flash)
 [bold red]6.[/] 🎵 Audio: Agregar Música de Fondo
 [bold cyan]7.[/] ⚡ Velocidad: Acelerar / Ralentizar
-[bold cyan]8.[/] � Audio: Quitar Sonido (Mute)
-[bold red]9.[/] �🚪 Salir
+[bold cyan]8.[/] 🔇 Audio: Quitar Sonido (Mute)
+[bold magenta]9.[/] 🎞️  60 FPS: Convertir a Sesenta
+[bold red]10.[/] 🚪 Salir
         """
         
         console.print(Panel(menu_text, title="🔥 Opus Video Service - Menú Principal", border_style="blue", expand=False))
         
-        choice = Prompt.ask("Selecciona una opción", choices=["1", "2", "3", "4", "5", "6", "7", "8", "9"], default="2")
+        choice = Prompt.ask("Selecciona una opción", choices=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"], default="2")
         
-        if choice == '9':
+        if choice == '10':
             console.print("[bold red]¡Adiós![/]")
             sys.exit(0)
             
@@ -314,6 +316,8 @@ def run_job_ui(mode):
         style_choice = Prompt.ask("Elige estilo", choices=["1", "2"], default="1")
         single_word = (style_choice == '2')
         
+        sub_style = get_subtitle_style_choice()
+        
         # Save Path Logic
         final_path, temp_path = get_save_path(input_path, "subbed")
         write_path = temp_path if temp_path else final_path
@@ -326,15 +330,12 @@ def run_job_ui(mode):
                 input_path, 
                 specific_output_path=write_path, 
                 alignment=align,
-                single_word=single_word
+                single_word=single_word,
+                style_name=sub_style
             )
             
             finalize_output(temp_path, final_path)
             
-        except TypeError: 
-             # Fallback if I haven't updated main.py yet (Safety)
-             run_subtitles_only(input_path, output_dir="output", alignment=align)
-             
         except Exception as e:
             console.print(f"\n[bold red]❌ Error fatal:[/]")
             console.print(e)
@@ -348,7 +349,30 @@ def run_job_ui(mode):
         return
 
     elif mode == '5':
-        # ... (lines 298-346 omitted) ...
+        # Hook Effects Workflow
+        input_path = select_video_file("Video para Efecto 'Hook'")
+        if not input_path:
+            Prompt.ask("\nPresiona Enter para volver...")
+            return
+            
+        effect = get_entry_effect_choice()
+        if not effect:
+            Prompt.ask("\nPresiona Enter para volver...")
+            return
+            
+        final_path, temp_path = get_save_path(input_path, "hook")
+        write_path = temp_path if temp_path else final_path
+        
+        try:
+            from src.workflows.use_cases import add_hook_effect_to_video
+            add_hook_effect_to_video(input_path, write_path, effect)
+            
+            finalize_output(temp_path, final_path)
+            console.print(f"[bold green]✨ Video listo: {final_path}[/]")
+        except Exception as e:
+            console.print(f"[bold red]❌ Error: {e}[/]")
+            
+        Prompt.ask("\nPresiona Enter para continuar...")
         return
 
     elif mode == '6':
@@ -466,6 +490,29 @@ def run_job_ui(mode):
         Prompt.ask("\nPresiona Enter para continuar...")
         return
 
+    elif mode == '9':
+        # Convert to 60fps
+        input_path = select_video_file("Video para Convertir a 60fps")
+        if not input_path:
+            Prompt.ask("\nPresiona Enter para volver...")
+            return
+            
+        final_path, temp_path = get_save_path(input_path, "60fps")
+        write_path = temp_path if temp_path else final_path
+        
+        try:
+            from src.features.effects.fps import convert_to_60fps
+            with console.status("[bold magenta]🎞️  Convirtiendo a 60fps...[/]", spinner="arc"):
+                convert_to_60fps(input_path, write_path)
+                
+            finalize_output(temp_path, final_path)
+            console.print(f"[bold green]✨ Video a 60fps listo: {final_path}[/]")
+        except Exception as e:
+            console.print(f"[bold red]❌ Error: {e}[/]")
+            
+        Prompt.ask("\nPresiona Enter para continuar...")
+        return
+
     # Options (Only for Mode 1 & 2)
     console.print("\n[bold yellow]Configuración del Trabajo:[/]")
 
@@ -507,7 +554,8 @@ def run_job_ui(mode):
             use_subs=use_subs,
             skip_analysis=skip_analysis,
             alignment=align,
-            single_word=single_word
+            single_word=single_word,
+            style_name=sub_style
         )
     except KeyboardInterrupt:
         console.print("\n[yellow]⚠️ Interrumpido por usuario[/]")

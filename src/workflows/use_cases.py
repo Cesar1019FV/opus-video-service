@@ -11,7 +11,8 @@ def run_subtitles_only(
     output_dir: str = "output",
     specific_output_path: Optional[str] = None,
     alignment: str = "bottom",
-    single_word: bool = False
+    single_word: bool = False,
+    style_name: str = "default"
 ):
     """
     Add subtitles to a complete video.
@@ -55,7 +56,8 @@ def run_subtitles_only(
         input_path,
         output_path,
         alignment=alignment,
-        single_word=single_word
+        single_word=single_word,
+        style_name=style_name
     )
     
     console.print(f"[bold green]✅ Complete: {output_path}[/]")
@@ -148,3 +150,64 @@ def add_background_music_to_video(
     audio.add_background_music(video_path, music_path, output_path, volume)
     
     console.print(f"[bold green]✅ Complete: {output_path}[/]")
+
+
+def add_hook_effect_to_video(
+    input_path: str,
+    output_path: str,
+    effect_type: str
+):
+    """
+    Apply a hook effect to a video.
+    
+    Args:
+        input_path: Source video
+        output_path: Output path
+        effect_type: '1'=zoom, '2'=flash, '3'=slide
+    """
+    from moviepy.editor import VideoFileClip, CompositeVideoClip
+    from src.features.effects.implementations import apply_effect_to_clip
+    from rich.console import Console
+    
+    console = Console()
+    console.print(f"[bold cyan]🎬 Applying hook effect ({effect_type})...[/]")
+    
+    clip = VideoFileClip(input_path)
+    
+    # We use a list for layers because some effects (like flash) add overlay layers
+    layers = []
+    
+    # Calculate final_y for slide effect (centered)
+    final_y = 0 # Default for non-vertical might be different, but we'll stick to center if possible
+    
+    # Apply effect
+    modified_main = apply_effect_to_clip(
+        clip, 
+        effect_type, 
+        size=(clip.w, clip.h),
+        final_y_pos=0,
+        extra_layer_list=layers
+    )
+    
+    # If it's zoom/flash, we usually want it centered if it's not a slide
+    if effect_type == '1':
+         modified_main = modified_main.set_position("center")
+    
+    layers.append(modified_main)
+    
+    final = CompositeVideoClip(layers, size=(clip.w, clip.h))
+    final = final.set_duration(clip.duration).set_audio(clip.audio)
+    
+    final.write_videofile(
+        output_path,
+        codec="libx264",
+        audio_codec="aac",
+        fps=clip.fps,
+        logger=None
+    )
+    
+    clip.close()
+    final.close()
+    
+    console.print(f"[bold green]✅ Complete: {output_path}[/]")
+

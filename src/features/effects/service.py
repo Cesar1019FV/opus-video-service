@@ -15,7 +15,7 @@ class EffectsService:
         
         Args:
             clip: Input video clip
-            effect_type: Effect type ('1'=zoom, '2'=flash, '3'=slide)
+            effect_type: Effect type ('1'=zoom, '2'=slide_left, '3'=slide_top)
             
         Returns:
             Clip with effect applied

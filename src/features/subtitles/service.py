@@ -22,7 +22,8 @@ class SubtitlesService:
         alignment: str = "bottom",
         fontsize: int = 16,
         srt_path: str | Path = None,
-        single_word: bool = False
+        single_word: bool = False,
+        style_name: str = "default"
     ) -> bool:
         """
         Create SRT and burn into video in one step.
@@ -56,7 +57,7 @@ class SubtitlesService:
         
         # Burn to video
         self.renderer.burn_subtitles_to_video(
-            video_path, srt_path, output_path, alignment, fontsize
+            video_path, srt_path, output_path, alignment, fontsize, style_name
         )
         
         return True
