@@ -187,6 +187,9 @@ def run_editor_ui():
             if not title_text: 
                 continue
             
+            # Style for title
+            title_style = get_subtitle_style_choice()
+            
             # 2. Ask for Description Generation (Optional)
             descriptions = {}
             gen_desc = Confirm.ask("📝 ¿Generar descripciones para redes sociales?", default=False)
@@ -233,10 +236,9 @@ def run_editor_ui():
             write_path = temp_path if temp_path else final_path
             
             try:
-                from src.features.editing.blur_background import make_blur_background_vertical_video
-                console.print("[dim]Requiere ImageMagick para títulos.[/]")
+                from src.workflows.use_cases import convert_to_vertical_blur
                 with console.status("[bold blue]🎬 Renderizando...[/]", spinner="bouncingBall"):
-                    make_blur_background_vertical_video(input_path, write_path, title_text, effect_type=effect)
+                    convert_to_vertical_blur(input_path, write_path, title_text, effect_type=effect, style_name=title_style)
                 
                 finalize_output(temp_path, final_path)
                 console.print(f"[bold green]✨ Video listo: {final_path}[/]")

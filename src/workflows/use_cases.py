@@ -98,7 +98,8 @@ def convert_to_vertical_blur(
     input_path: str,
     output_path: str,
     title: str = "",
-    effect_type: Optional[str] = None
+    effect_type: Optional[str] = None,
+    style_name: str = "default"
 ):
     """
     Create vertical video with blurred background.
@@ -108,21 +109,55 @@ def convert_to_vertical_blur(
         output_path: Output path
         title: Title text
         effect_type: Optional entry effect
+        style_name: Subtitle style to apply to title
     """
     from src.features.editing.blur_background import make_blur_background_vertical_video
     from rich.console import Console
+    import os
+    import time
     
     console = Console()
-    console.print("[bold cyan]🎬 Creating blur background...[/]")
     
-    make_blur_background_vertical_video(
-        input_path,
-        output_path,
-        title,
-        effect_type
-    )
+    # Step 1: Create Blur Background with FFmpeg
+    console.print("[bold cyan]🎬 Creating blur background (Step 1/2)...[/]")
     
-    console.print(f"[bold green]✅ Complete: {output_path}[/]")
+    # If we have an effect, we need a temp file for the first step
+    final_output = output_path
+    if effect_type:
+        timestamp = int(time.time())
+        process_path = output_path.replace('.mp4', f'_base_{timestamp}.mp4')
+    else:
+        process_path = final_output
+
+    try:
+        make_blur_background_vertical_video(
+            input_path,
+            process_path,
+            title,
+            effect_type=None, # Blur editor doesn't handle hooks internally anymore
+            style_name=style_name
+        )
+        
+        # Step 2: Apply Hook Effect if needed
+        if effect_type:
+            console.print(f"[bold cyan]✨ Applying hook effect '{effect_type}' (Step 2/2)...[/]")
+            add_hook_effect_to_video(process_path, final_output, effect_type)
+            
+            # Clean up temp base file
+            if os.path.exists(process_path) and process_path != final_output:
+                try:
+                    os.remove(process_path)
+                except:
+                    pass
+        
+        console.print(f"[bold green]✅ Complete: {final_output}[/]")
+        
+    except Exception as e:
+        console.print(f"[bold red]❌ Error in workflow: {e}[/]")
+        if effect_type and 'process_path' in locals() and os.path.exists(process_path):
+             # If step 2 failed, maybe keep step 1 as a backup or clean up
+             pass
+        raise e
 
 
 def add_background_music_to_video(

@@ -1,145 +1,134 @@
-"""
-Blur Background Vertical Editor
-Creates vertical video with blurred background.
-Logic ported from src/core/editor.py
-"""
-from moviepy.editor import VideoFileClip, CompositeVideoClip, TextClip
-from moviepy.video.fx.all import gaussian_blur
-from src.features.effects.implementations import apply_effect_to_clip
+import subprocess
+import shutil
+import tempfile
+import os
+from pathlib import Path
+
+def _run(cmd):
+    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    if p.returncode != 0:
+        raise RuntimeError(f"FFmpeg failed.\nCMD: {' '.join(cmd)}\n\nSTDERR:\n{p.stderr}")
+    return p
+
+def _escape_for_subtitles_filter(path_str: str) -> str:
+    """
+    Escapado razonable para el filtro subtitles (especialmente Windows):
+    - usar / en vez de \
+    - escapar ':' como '\:'
+    - escapar "'" porque usamos comillas simples en la expresión
+    """
+    s = path_str.replace("\\", "/")
+    # En Windows, el ':' del drive es el problema principal
+    s = s.replace(":", r"\:")
+    # Si el path tuviera comillas simples
+    s = s.replace("'", r"\'")
+    return s
 
 def make_blur_background_vertical_video(
     input_video_path: str,
     output_path: str,
-    title_text: str,
-    blur_radius: int = 35,
-    main_width_ratio: float = 0.9,
-    title_duration: float = None,
+    title_text: str = None,
+    blur_sigma: int = 35,
+    main_width_ratio: float = 0.88,
     fps: int = 30,
-    effect_type: str = None
+    style_name: str = "default",
+    effect_type: str = None  # Agregado para compatibilidad con el workflow
 ):
-    """
-    Creates a 9:16 (1080x1920) video with:
-    - blurred background from the same source video
-    - centered 16:9 foreground video
-    - title text on top
-    """
-    print(f"🎬 Creating Blur Background Video...")
+    from src.features.subtitles.styles import SUBTITLE_STYLES
 
-    FINAL_W, FINAL_H = 1080, 1920
+    if not shutil.which("ffmpeg"):
+        raise EnvironmentError("❌ FFmpeg no está en el PATH.")
 
-    # ---------------- Load source clip ----------------
-    clip = VideoFileClip(input_video_path)
+    input_video_path = str(Path(input_video_path))
+    output_path = str(Path(output_path))
 
-    # =================================================
-    # BACKGROUND (blurred)
-    # =================================================
-    # Resize to occupy height
-    bg = clip.resize(height=FINAL_H)
+    temp_output = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False).name
+    temp_srt_path = None
 
-    # Crop center width
-    if bg.w > FINAL_W:
-        bg = bg.crop(x_center=bg.w / 2, width=FINAL_W)
-    else:
-        bg = bg.resize(width=FINAL_W)
+    # ---- Etapa 1: fondo blur + video centrado (1080x1920) ----
+    scale_main_w = int(1080 * main_width_ratio)
+    scale_main_w = (scale_main_w // 2) * 2
 
-    # Apply blur
-    # Note: Using MoviePy's gaussian_blur (requires skimage or PIL)
-    try:
-        bg = bg.fx(gaussian_blur, sigma=blur_radius)
-    except Exception as e:
-        print(f"⚠️ Blur failed (skimage missing?), using resize fallback: {e}")
-        # Fallback: Resize small then big
-        bg = bg.resize(0.1).resize(width=FINAL_W)
-        
-    bg = bg.set_position((0, 0)).without_audio()
+    filter_complex = (
+        f"[0:v]split=2[fg][bg];"
+        f"[bg]scale=1200:2134:force_original_aspect_ratio=increase,"
+        f"crop=1200:2134,"
+        f"gblur=sigma={blur_sigma}[blurred];"
+        f"[fg]scale=1140:-2:force_original_aspect_ratio=increase[front];"
+        f"[blurred][front]overlay=(W-w)/2:(H-h)/2[tmp];"
+        f"[tmp]crop=1080:1920,setsar=1[v]"
+    )
 
-    # =================================================
-    # FOREGROUND (main video)
-    # =================================================
-    main_width = int(FINAL_W * main_width_ratio)
-    main = clip.resize(width=main_width)
-    main = main.set_position(("center", "center"))
 
-    # =================================================
-    # TITLE
-    # =================================================
-    title_clip = None
+    cmd1 = [
+        "ffmpeg", "-y", "-loglevel", "error",
+        "-i", input_video_path,
+        "-filter_complex", filter_complex,
+        "-map", "[v]", "-map", "0:a?",
+        "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+        "-pix_fmt", "yuv420p",
+        "-c:a", "aac", "-b:a", "192k",
+        temp_output
+    ]
+    _run(cmd1)
+
+    # ---- Etapa 2: título arriba usando subtitles + force_style ----
     if title_text:
-        try:
-            # Check ImageMagick availability (conceptually)
-            title_clip = TextClip(
-                txt=title_text,
-                font="Arial", 
-                fontsize=80,
-                color="white",
-                stroke_color="black",
-                stroke_width=4,
-                method="caption",
-                size=(FINAL_W - 120, None),
-                align="center"
-            )
-            title_clip = title_clip.set_position(("center", 180))
+        def wrap_text(text, max_chars=25):
+            words = text.split()
+            lines, cur = [], ""
+            for w in words:
+                if len(cur) + len(w) + (1 if cur else 0) > max_chars:
+                    lines.append(cur)
+                    cur = w
+                else:
+                    cur = f"{cur} {w}".strip()
+            if cur:
+                lines.append(cur)
+            return r"\N".join(lines)
 
-            if title_duration is not None:
-                 title_clip = title_clip.set_duration(title_duration)
-            else:
-                 title_clip = title_clip.set_duration(clip.duration)
-                 
-        except Exception as e:
-            print(f"⚠️ TextClip Error (ImageMagick missing?): {e}")
-            print("   Skipping Title...")
-            title_clip = None
+        wrapped_title = wrap_text(title_text.strip().upper())
 
-    # =================================================
-    # COMPOSITION & EFFECTS
-    # =================================================
-    layers = [bg]
-    
-    if effect_type:
-        # Main clip is centered
-        # apply_effect_to_clip relies on size and y pos for slides
-        # Center Y = (FINAL_H - main.h) // 2
-        center_y = int((FINAL_H - main.h) / 2)
-        
-        main = apply_effect_to_clip(
-            main, 
-            effect_type, 
-            size=(FINAL_W, FINAL_H), # Passing container size correctly
-            final_y_pos=center_y,
-            extra_layer_list=layers # Flash adds to layers
-        )
-        # Re-center for non-slide effects
-        if effect_type in ['1', '2']:
-             main = main.set_position(("center", "center"))
-             
-    layers.append(main)
-    if title_clip: layers.append(title_clip)
-    
-    final = CompositeVideoClip(
-        layers,
-        size=(FINAL_W, FINAL_H)
-    )
-    final = final.set_duration(clip.duration).set_fps(fps)
+        with tempfile.NamedTemporaryFile(suffix=".srt", delete=False, mode="w", encoding="utf-8") as tf:
+            temp_srt_path = tf.name
+            tf.write(f"1\n00:00:00,000 --> 02:00:00,000\n{wrapped_title}\n\n")
 
-    # Audio
-    if clip.audio:
-        final = final.set_audio(clip.audio)
+        style = SUBTITLE_STYLES.get(style_name, SUBTITLE_STYLES["default"])
 
-    # =================================================
-    # EXPORT
-    # =================================================
-    final.write_videofile(
-        output_path,
-        codec="libx264",
-        audio_codec="aac",
-        fps=fps,
-        preset="fast",
-        threads=4,
-        verbose=False,
-        logger=None
-    )
-    
-    clip.close()
-    bg.close()
-    main.close()
-    if title_clip: title_clip.close()
+        # force_style acepta claves ASS. Ejemplos típicos: Alignment, Fontsize, Outline, etc. :contentReference[oaicite:2]{index=2}
+        style_parts = [
+            "Alignment=6",      # top-center
+            "MarginV=100",
+            "Outline=2",
+            "OutlineColour=&H000000&",
+            "Fontsize=15",
+            "Fontname=Arial Black"
+        ]
+
+        for k, v in style.items():
+            if k != "name":
+                style_parts.append(f"{k}={v}")
+        style_str = ",".join(style_parts)
+
+        safe_srt = _escape_for_subtitles_filter(temp_srt_path)
+
+        cmd2 = [
+            "ffmpeg", "-y",
+            "-i", temp_output,
+            "-vf", f"subtitles='{safe_srt}':force_style='{style_str}'",
+            "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+            "-pix_fmt", "yuv420p",
+            "-c:a", "copy",
+            output_path
+        ]
+        _run(cmd2)
+    else:
+        shutil.move(temp_output, output_path)
+
+    # cleanup
+    if os.path.exists(temp_output):
+        os.remove(temp_output)
+    if temp_srt_path and os.path.exists(temp_srt_path):
+        os.remove(temp_srt_path)
+
+    return output_path
