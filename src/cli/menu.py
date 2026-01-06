@@ -5,6 +5,11 @@ Handles the Rich interactive menu and all user workflows.
 """
 import os
 import sys
+
+# Suppress OpenCV logs to avoid terminal flickering
+os.environ["OPENCV_LOG_LEVEL"] = "OFF"
+os.environ["OPENCV_VIDEOIO_LOG_LEVEL"] = "SILENT"
+
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt, Confirm, IntPrompt
@@ -56,9 +61,9 @@ def main_menu():
         
         menu_text = """
 [bold cyan]1.[/] 📥 Descargar Video (YouTube / TikTok)
-[bold green]2.[/] 🚀 Procesar Video con IA (Detectar Virales / Vertical)
+[bold green]2.[/] 🚀 Shorts Virales con IA (Detectar y crear clips automáticamente)
 [bold blue]3.[/] 📝 Generar Subtítulos (Video Completo)
-[bold magenta]4.[/] 🎨 Editor: Formatos Verticales (Split/Blur)
+[bold magenta]4.[/] 🎨 Editor: Formatos Verticales (Split/Blur/Smart-Crop)
 [bold yellow]5.[/] ✨ Editor: Agregar Efectos 'Hook' (Zoom/Flash)
 [bold red]6.[/] 🎵 Audio: Agregar Música de Fondo
 [bold cyan]7.[/] ⚡ Velocidad: Acelerar / Ralentizar
@@ -101,15 +106,16 @@ def run_editor_ui():
     """Sub-menu for Vertical Formats"""
     while True:
         menu_text = """
-[bold magenta]1.[/] ✂️  Split Screen (Input + Gameplay)
-[bold blue]2.[/] 💧 Blur Vertical (Input + Fondo Borroso)
-[bold red]3.[/] 🔙 Volver al Menú Principal
+[bold magenta]1.[/] ✂️  Pantalla Dividida (Estilo Reacción / Gameplay arriba y abajo)
+[bold blue]2.[/] 💧 Fondo Borroso Estético (Video centrado con fondo difuminado)
+[bold yellow]3.[/] 🎞️  Conversión Inteligente a Vertical (Todo el video con seguimiento de rostros)
+[bold red]4.[/] 🔙 Volver al Menú Principal
         """
-        console.print(Panel(menu_text, title="🎨 Editor de Formatos", border_style="magenta", expand=False))
+        console.print(Panel(menu_text, title="🎨 Editor de Formatos Verticales", border_style="magenta", expand=False))
         
-        choice = Prompt.ask("Selecciona una opción", choices=["1", "2", "3"], default="1")
+        choice = Prompt.ask("Selecciona una opción", choices=["1", "2", "3", "4"], default="1")
         
-        if choice == '3':
+        if choice == '4':
             return  # Back to main menu
             
         input_path = select_video_file("Video para Edición")
@@ -245,6 +251,26 @@ def run_editor_ui():
                 console.print(f"[bold green]✨ Video listo: {final_path}[/]")
             except Exception as e:
                  console.print(f"[bold red]❌ Error: {e}[/]")
+
+        elif choice == '3':  # Smart Crop Full Video
+            console.print(f"[bold yellow]🎞️  Modo: Conversión Inteligente a Vertical[/]")
+            
+            try:
+                from src.main import run_pipeline
+                with console.status("[bold yellow]🎬 Renderizando video completo a vertical...[/]", spinner="bouncingBall"):
+                    run_pipeline(
+                        input_path=input_path,
+                        output_dir="assets/output",
+                        use_subs=False,
+                        skip_analysis=True, # Process whole video
+                        alignment="bottom",
+                        single_word=False,
+                        style_name="default"
+                    )
+                
+                console.print(f"[bold green]✨ Video convertido exitosamente[/]")
+            except Exception as e:
+                console.print(f"[bold red]❌ Error: {e}[/]")
 
         Prompt.ask("\nPresiona Enter para continuar...")
 
@@ -556,26 +582,19 @@ def run_job_ui(mode):
         return
 
     # Options (Only for Mode 1 & 2)
-    console.print("\n[bold yellow]Configuración del Trabajo:[/]")
-
-    use_subs = Confirm.ask("📜 ¿Quieres quemar subtítulos en el video?", default=False)
-    
+    use_subs = False
     align = "bottom"
     single_word = False
-    
-    if use_subs:
-        align = Prompt.ask("📍 Posición de subtítulos", choices=["bottom", "middle", "top"], default="bottom")
-        console.print("\n[bold yellow]Estilo de Subtítulos:[/]")
-        console.print("1. [cyan]Frases (Estándar)[/]: Agrupa palabras.")
-        console.print("2. [magenta]Dinámico (Palabra por palabra)[/]: Estilo TikTok.")
-        style_choice = Prompt.ask("Elige estilo", choices=["1", "2"], default="1")
-        single_word = (style_choice == '2')
-    
-    console.print("\n[bold yellow]Análisis con IA (Gemini):[/]")
-    console.print("- [cyan]Sí[/]: Detecta clips virales automáticamente")
-    console.print("- [cyan]No[/]: Convierte todo el video a vertical (sin cortes)")
-    use_gemini = Confirm.ask("🧠 ¿Usar IA para detectar virales?", default=True)
-    skip_analysis = not use_gemini
+    sub_style = "default"
+
+    skip_analysis = False # Default for Option 2 (Viral Clips)
+
+    if mode == '2':
+        # Removed ia_choice prompt as it's now split into separate menu items
+        skip_analysis = False 
+    else:
+        # For other modes that might reach here (though we usually return early)
+        skip_analysis = True
 
     console.print(Panel("🚀 Iniciando Pipeline...", style="bold green"))
 
@@ -591,7 +610,6 @@ def run_job_ui(mode):
     try:
         run_pipeline(
             input_path=input_path,
-            url=url,
             output_dir="output",
             use_subs=use_subs,
             skip_analysis=skip_analysis,

@@ -123,6 +123,34 @@ class CroppingService:
             cap.release()
             out.release()
             
+        # Post-process: Remux to standard H264 to avoid "corrupt" files from mp4v codec
+        # AND Restore audio (lost in OpenCV VideoWriter)
+        temp_raw_path = output_path + ".raw.mp4"
+        try:
+            os.rename(output_path, temp_raw_path)
+            
+            from src.shared.ffmpeg import remux_to_standard_mp4
+            print(f"   🎞️  Restoring audio and optimizing...")
+            
+            # Calculate duration for audio clip
+            actual_duration = current_frame_idx / fps - start_time
+            
+            remux_to_standard_mp4(
+                video_path=temp_raw_path, 
+                output_path=output_path,
+                audio_source=input_path,
+                start_time=start_time,
+                duration=actual_duration
+            )
+            
+            if os.path.exists(temp_raw_path):
+                os.remove(temp_raw_path)
+        except Exception as post_e:
+            print(f"⚠️ Warning: Failed to optimize video: {post_e}")
+            # If rename failed or remux failed, try to restore if possible
+            if os.path.exists(temp_raw_path) and not os.path.exists(output_path):
+                os.rename(temp_raw_path, output_path)
+            
         print(f"✅ Cropped video saved to: {output_path}")
         return True
 

@@ -10,6 +10,7 @@ from typing import Optional
 from src.shared.ffmpeg import get_video_info, get_video_resolution
 from src.features.cropping.service import process_viral_clip_with_smart_crop
 from src.shared.config import get_config
+import os
 
 
 class ViralClipsPipeline:
@@ -143,7 +144,6 @@ class ViralClipsPipeline:
     ):
         """Process a single clip: crop and optionally add subtitles"""
         from rich.console import Console
-        import os
         
         console = Console()
         

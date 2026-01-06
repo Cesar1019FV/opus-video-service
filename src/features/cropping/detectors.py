@@ -28,7 +28,13 @@ def get_face_net():
         model_path = config.models_dir / "res10_300x300_ssd_iter_140000.caffemodel"
         
         try:
-             _face_net = cv2.dnn.readNetFromCaffe(str(proto_path), str(model_path))
+            # Read into memory to support Unicode paths on Windows
+            with open(proto_path, 'rb') as f:
+                proto_data = f.read()
+            with open(model_path, 'rb') as f:
+                model_data = f.read()
+                
+            _face_net = cv2.dnn.readNetFromCaffe(proto_data, model_data)
         except Exception as e:
             print(f"⚠️ Warning: Could not load OpenCV DNN face detector: {e}")
             print(f"Make sure {proto_path} and {model_path} exist.")

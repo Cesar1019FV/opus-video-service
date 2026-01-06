@@ -262,3 +262,46 @@ def check_ffmpeg_available() -> bool:
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
+def remux_to_standard_mp4(
+    video_path: str, 
+    output_path: str, 
+    audio_source: Optional[str] = None, 
+    start_time: float = 0, 
+    duration: float = 0
+) -> None:
+    """
+    Ensure a video file is encoded as standard H264 MP4 for maximum compatibility.
+    Optionally merges audio from a separate source (to restore audio lost in OpenCV).
+    """
+    if audio_source:
+        # Combine video from OpenCV with audio from original source
+        command = [
+            'ffmpeg', '-y',
+            '-i', video_path,
+            '-ss', str(start_time),
+            '-t', str(duration),
+            '-i', audio_source,
+            '-map', '0:v:0',
+            '-map', '1:a:0',
+            '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
+            '-c:a', 'aac', '-b:a', '128k',
+            output_path
+        ]
+    else:
+        # Standard re-encode
+        command = [
+            'ffmpeg', '-y',
+            '-i', video_path,
+            '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
+            '-c:a', 'aac', '-b:a', '128k',
+            output_path
+        ]
+    
+    result = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+    
+    if result.returncode != 0:
+        raise FFmpegError(
+            f"Failed to fix/remux video to standard format",
+            command=' '.join(command),
+            stderr=result.stderr.decode() if result.stderr else None
+        )
