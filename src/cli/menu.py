@@ -266,6 +266,10 @@ def run_job_ui(mode):
             Prompt.ask(t("press_enter_back"))
             return
         
+        # New options: Count and Duration
+        target_count = IntPrompt.ask(t("viral_count_prompt"), default=0)
+        target_duration = IntPrompt.ask(t("viral_duration_prompt"), default=60)
+        
         vertical_format = (mode == '2')
         console.print(Panel(t("viral_start"), style="bold green"))
         
@@ -275,7 +279,9 @@ def run_job_ui(mode):
                 input_path=input_path,
                 output_dir="assets/output",
                 skip_analysis=False,
-                vertical_format=vertical_format
+                vertical_format=vertical_format,
+                target_count=target_count,
+                target_duration=target_duration
             )
         except Exception as e:
             console.print(t("error", error=e))

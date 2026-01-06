@@ -125,6 +125,8 @@ TRANSLATIONS = {
     # Viral Clips
     "viral_start": "🚀 Starting Viral Clip Detection...",
     "viral_success": "\n[bold green]✅ Process completed[/]",
+    "viral_count_prompt": "How many clips do you want? (0 for auto)",
+    "viral_duration_prompt": "Target duration per clip (seconds, e.g., 60)",
 
     # Helpers & Paths
     "select_video_prompt": "\n[bold cyan]📂 {prompt}:[/]",

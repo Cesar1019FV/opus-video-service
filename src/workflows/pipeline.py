@@ -44,7 +44,9 @@ class ViralClipsPipeline:
         input_path: str,
         output_dir: Optional[str] = None,
         skip_analysis: bool = False,
-        vertical_format: bool = True
+        vertical_format: bool = True,
+        target_count: int = 0,
+        target_duration: int = 60
     ):
         """
         Execute the viral clips pipeline on a local video file.
@@ -74,7 +76,9 @@ class ViralClipsPipeline:
             try:
                 clips = self.viral_clips_service.find_viral_clips(
                     transcript_dict,
-                    video_info.duration
+                    video_info.duration,
+                    target_count=target_count,
+                    target_duration=target_duration
                 )
                 console.print(f"[bold green]✅ Found {len(clips)} viral moments[/]")
                 
@@ -150,8 +154,17 @@ def run_pipeline(
     output_dir: str = "output",
     skip_analysis: bool = False,
     vertical_format: bool = True,
+    target_count: int = 0,
+    target_duration: int = 60,
     **kwargs # Accept but ignore legacy params
 ):
     """Legacy function maintaining updated signature"""
     pipeline = ViralClipsPipeline()
-    pipeline.run(input_path, output_dir, skip_analysis, vertical_format=vertical_format)
+    pipeline.run(
+        input_path, 
+        output_dir, 
+        skip_analysis, 
+        vertical_format=vertical_format,
+        target_count=target_count,
+        target_duration=target_duration
+    )

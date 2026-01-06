@@ -42,6 +42,8 @@ class ViralClipsService:
         self,
         transcript_dict: dict,
         video_duration: float,
+        target_count: int = 0,
+        target_duration: int = 60,
         show_cost: bool = True
     ) -> List[ViralClip]:
         """
@@ -50,14 +52,12 @@ class ViralClipsService:
         Args:
             transcript_dict: Transcript dictionary with 'text' and 'segments' keys
             video_duration: Total video duration in seconds
+            target_count: Desired number of clips (0 for auto)
+            target_duration: Target duration for each clip in seconds
             show_cost: Whether to display token usage and cost
             
         Returns:
             List of ViralClip objects
-            
-        Raises:
-            GeminiAPIError: If API call fails
-            NoViralClipsFoundError: If no clips are found
         """
         # Extract words from transcript
         words = []
@@ -72,7 +72,9 @@ class ViralClipsService:
         prompt = VIRAL_CLIPS_PROMPT_TEMPLATE.format(
             video_duration=video_duration,
             transcript_text=json.dumps(transcript_dict['text']),
-            words_json=json.dumps(words)
+            words_json=json.dumps(words),
+            target_count=target_count,
+            target_duration=target_duration
         )
         
         try:
