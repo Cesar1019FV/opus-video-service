@@ -12,7 +12,7 @@ from rich.table import Table
 
 from src.shared.models import ViralClip, TimeRange
 from src.shared.exceptions import GeminiAPIError, MissingAPIKeyError, NoViralClipsFoundError, InvalidPromptResponseError
-from .prompts import TITLE_PROMPT_TEMPLATE, DESCRIPTION_PROMPT_TEMPLATE, VIRAL_CLIPS_PROMPT_TEMPLATE
+from .prompts import VIRAL_CLIPS_PROMPT_TEMPLATE
 
 
 class ViralClipsService:
@@ -37,72 +37,6 @@ class ViralClipsService:
         self.client = genai.Client(api_key=self.api_key)
         self.console = Console()
     
-    def generate_viral_titles(self, transcript_text: str, max_chars: int = 2000) -> List[str]:
-        """
-        Generate viral title suggestions based on transcript.
-        
-        Args:
-            transcript_text: Full or partial transcript
-            max_chars: Maximum characters to send (to save tokens)
-            
-        Returns:
-            List of viral title suggestions
-        """
-        truncated = transcript_text[:max_chars]
-        prompt = TITLE_PROMPT_TEMPLATE.format(transcript_text=truncated)
-        
-        try:
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=prompt,
-                config={'response_mime_type': 'application/json'}
-            )
-            
-            data = json.loads(response.text)
-            return data.get("titles", [])
-        except Exception as e:
-            print(f"❌ Error generating titles: {e}")
-            return []
-    
-    def generate_platform_descriptions(
-        self,
-        transcript_text: str,
-        video_title: str = "",
-        max_chars: int = 2000
-    ) -> Dict[str, str]:
-        """
-        Generate platform-specific video descriptions.
-        
-        Args:
-            transcript_text: Full or partial transcript
-            video_title: Video title for context
-            max_chars: Maximum characters to send
-            
-        Returns:
-            Dictionary with keys: tiktok, instagram, youtube
-        """
-        truncated = transcript_text[:max_chars]
-        prompt = DESCRIPTION_PROMPT_TEMPLATE.format(
-            video_title=video_title or "Viral Short",
-            transcript_text=truncated
-        )
-        
-        try:
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=prompt,
-                config={'response_mime_type': 'application/json'}
-            )
-            
-            data = json.loads(response.text)
-            return {
-                "tiktok": data.get("tiktok_description", ""),
-                "instagram": data.get("instagram_description", ""),
-                "youtube": data.get("youtube_description", "")
-            }
-        except Exception as e:
-            print(f"❌ Error generating descriptions: {e}")
-            return {"tiktok": "", "instagram": "", "youtube": ""}
     
     def find_viral_clips(
         self,
@@ -223,30 +157,15 @@ class ViralClipsService:
 
 
 # Legacy functions for backward compatibility
+# Legacy functions moved to src.features.social for better architecture
+# But we keep empty stubs here to avoid immediate breakages if called from weird places
 def generate_viral_title(transcript_text: str) -> List[str]:
-    """Legacy function for backward compatibility"""
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        return []
-    
-    try:
-        service = ViralClipsService(api_key=api_key)
-        return service.generate_viral_titles(transcript_text)
-    except Exception:
-        return []
-
+    from src.features.social import generate_viral_titles
+    return generate_viral_titles(transcript_text)
 
 def generate_video_descriptions(transcript_text: str, video_title: str = "") -> Dict[str, str]:
-    """Legacy function for backward compatibility"""
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        return {"tiktok": "", "instagram": "", "youtube": ""}
-    
-    try:
-        service = ViralClipsService(api_key=api_key)
-        return service.generate_platform_descriptions(transcript_text, video_title)
-    except Exception:
-        return {"tiktok": "", "instagram": "", "youtube": ""}
+    from src.features.social import generate_video_descriptions
+    return generate_video_descriptions(transcript_text, video_title)
 
 
 def get_viral_clips(transcript_result: dict, video_duration: float) -> Optional[dict]:

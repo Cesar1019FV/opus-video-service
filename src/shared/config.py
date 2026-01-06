@@ -19,6 +19,9 @@ class AppConfig:
     # API Keys
     gemini_api_key: Optional[str] = field(default_factory=lambda: os.getenv("GEMINI_API_KEY"))
     
+    # Localization
+    language: str = "en"
+    
     # Directories
     project_root: Path = field(default_factory=lambda: Path(__file__).parent.parent.parent)
     input_dir: Path = field(init=False)

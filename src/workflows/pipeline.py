@@ -23,7 +23,6 @@ class ViralClipsPipeline:
         # Lazy load services to avoid circular imports
         self._transcription_service = None
         self._viral_clips_service = None
-        self._subtitle_renderer = None
     
     @property
     def transcription_service(self):
@@ -39,22 +38,13 @@ class ViralClipsPipeline:
             self._viral_clips_service = ViralClipsService()
         return self._viral_clips_service
     
-    @property
-    def subtitle_renderer(self):
-        if self._subtitle_renderer is None:
-            from src.features.subtitles.renderer import SubtitleRenderer
-            self._subtitle_renderer = SubtitleRenderer()
-        return self._subtitle_renderer
     
     def run(
         self,
         input_path: str,
         output_dir: Optional[str] = None,
-        use_subs: bool = False,
         skip_analysis: bool = False,
-        alignment: str = "bottom",
-        single_word: bool = False,
-        style_name: str = "default"
+        vertical_format: bool = True
     ):
         """
         Execute the viral clips pipeline on a local video file.
@@ -95,13 +85,9 @@ class ViralClipsPipeline:
                         input_path,
                         clip.start,
                         clip.end,
-                        transcript_dict,
                         output_dir,
-                        use_subs,
-                        alignment,
                         f"clip_{i}",
-                        single_word,
-                        style_name
+                        vertical_format=vertical_format
                     )
             except Exception as e:
                 console.print(f"[bold red]❌ AI Analysis failed: {e}[/]")
@@ -118,13 +104,9 @@ class ViralClipsPipeline:
                 input_path,
                 0,
                 video_info.duration,
-                transcript_dict,
                 output_dir,
-                use_subs,
-                alignment,
                 "full_video",
-                single_word,
-                style_name
+                vertical_format=vertical_format
             )
         
         console.print(f"\n[bold green]✨ Pipeline complete![/]")
@@ -134,68 +116,42 @@ class ViralClipsPipeline:
         input_path: str,
         start: float,
         end: float,
-        transcript_dict: dict,
         output_dir: str,
-        use_subs: bool,
-        alignment: str,
         clip_name: str,
-        single_word: bool = False,
-        style_name: str = "default"
+        vertical_format: bool = True
     ):
-        """Process a single clip: crop and optionally add subtitles"""
+        """Process a single clip: optionally crop to vertical format"""
         from rich.console import Console
-        
         console = Console()
         
-        # Output paths
-        cropped_path = os.path.join(output_dir, f"{clip_name}_vertical.mp4")
-        
-        # Crop to vertical
-        console.print(f"  ✂️  Cropping to vertical format...")
-        process_viral_clip_with_smart_crop(
-            input_path,
-            start,
-            end,
-            cropped_path
-        )
-        
-        # Add subtitles if requested
-        if use_subs:
-            console.print(f"  📝 Adding subtitles...")
-            final_path = os.path.join(output_dir, f"{clip_name}_subbed.mp4")
-            srt_path = os.path.join(output_dir, f"{clip_name}.srt")
-            
-            self.subtitle_renderer.generate_srt_from_transcript(
-                transcript_dict,
+        if vertical_format:
+            # Output path for vertical
+            output_path = os.path.join(output_dir, f"{clip_name}_vertical.mp4")
+            console.print(f"  ✂️  Cropping to vertical format...")
+            process_viral_clip_with_smart_crop(
+                input_path,
                 start,
                 end,
-                srt_path,
-                single_word=single_word
+                output_path
             )
-            
-            self.subtitle_renderer.burn_subtitles_to_video(
-                cropped_path,
-                srt_path,
-                final_path,
-                alignment,
-                style_name=style_name
-            )
-            
-            console.print(f"  [bold green]✅ Saved: {final_path}[/]")
         else:
-            console.print(f"  [bold green]✅ Saved: {cropped_path}[/]")
+            # Output path for horizontal (standard cut)
+            output_path = os.path.join(output_dir, f"{clip_name}_horizontal.mp4")
+            console.print(f"  ✂️  Cutting horizontal segment...")
+            from src.shared.ffmpeg import cut_video
+            cut_video(input_path, output_path, start, end)
+        
+        console.print(f"  [bold green]✅ Saved: {output_path}[/]")
 
 
 # Legacy function for backward compatibility
 def run_pipeline(
     input_path: str,
     output_dir: str = "output",
-    use_subs: bool = False,
     skip_analysis: bool = False,
-    alignment: str = "bottom",
-    single_word: bool = False,
-    style_name: str = "default"
+    vertical_format: bool = True,
+    **kwargs # Accept but ignore legacy params
 ):
     """Legacy function maintaining updated signature"""
     pipeline = ViralClipsPipeline()
-    pipeline.run(input_path, output_dir, use_subs, skip_analysis, alignment, single_word, style_name)
+    pipeline.run(input_path, output_dir, skip_analysis, vertical_format=vertical_format)

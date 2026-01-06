@@ -5,10 +5,15 @@ Extends functionality similar to youtube.py for consistent user experience.
 """
 import os
 import re
+import sys
 import time
 import yt_dlp
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Optional
+
+from src.translations.manager import get_translator
+t = get_translator().t
+
 from .exceptions import TikTokDownloadError, InvalidURLError
 
 
@@ -65,21 +70,23 @@ def download_tiktok_video(url: str, output_dir: str = ".") -> Tuple[str, str]:
     if not url or not url.strip():
         raise InvalidURLError("Empty URL provided")
     
-    print(f"📥 Downloading video from TikTok: {url}")
+    print(t("tt_downloading", url=url))
     
     # Handle Cookies (TikTok often needs them more than YouTube)
     cookies_path = 'cookies.txt'
     cookies_env = os.environ.get("TIKTOK_COOKIES") or os.environ.get("YOUTUBE_COOKIES")
     if cookies_env:
-        print("🍪 Found COOKIES env var, using it.")
+        print(t("cookies_found", platform="TikTok"))
         try:
             with open(cookies_path, 'w') as f:
                 f.write(cookies_env)
         except Exception as e:
-            print(f"⚠️ Failed to write cookies file: {e}")
+            print(t("cookies_fail", error=e))
             cookies_path = None
     elif not os.path.exists(cookies_path):
         cookies_path = None
+    else:
+        print(t("cookies_manual"))
 
     # Get video info first
     ydl_opts_info = {

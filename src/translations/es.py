@@ -1,0 +1,172 @@
+"""
+Traducción al Español
+"""
+
+TRANSLATIONS = {
+    # Menú Principal
+    "menu_title": "🔥 Opus Video Service - Menú Principal",
+    "menu_subtitle": "Opus Video Service - Creador de Shorts con IA",
+    "powered_by": "Potenciado por Gemini & Whisper",
+    "menu_option_1": "[bold cyan]1.[/] 📥 Descargar Video (YouTube / TikTok)",
+    "menu_option_2": "[bold green]2.[/] 🚀 Shorts Virales con IA (Formato Vertical - Smart Crop)",
+    "menu_option_3": "[bold green]3.[/] 🚀 Shorts Virales con IA (Formato Horizontal - Solo cortes)",
+    "menu_option_4": "[bold blue]4.[/] 📝 Generar Subtítulos (Video Completo o Clip)",
+    "menu_option_5": "[bold magenta]5.[/] 🎨 Editor: Formatos Verticales (Split/Blur/Smart-Crop)",
+    "menu_option_6": "[bold yellow]6.[/] ✨ Editor: Agregar Efectos 'Hook' (Zoom/Flash)",
+    "menu_option_7": "[bold red]7.[/] 🎵 Audio: Agregar Música de Fondo",
+    "menu_option_8": "[bold cyan]8.[/] ⚡ Velocidad: Acelerar / Ralentizar",
+    "menu_option_9": "[bold cyan]9.[/] 🔇 Audio: Quitar Sonido (Mute)",
+    "menu_option_10": "[bold magenta]10.[/] 🎞️  60 FPS: Convertir a Sesenta",
+    "menu_option_11": "[bold yellow]11.[/] ✂️  Audio: Eliminar Silencios (Auto-trim)",
+    "menu_option_12": "[bold blue]12.[/] 📱 AI: Generar Copys y Títulos (Redes Sociales)",
+    "menu_option_13": "[bold red]13.[/] 🚪 Salir",
+    "select_option": "Selecciona una opción",
+    "exit_msg": "[bold red]¡Adiós![/]",
+    "press_enter_back": "\nPresiona Enter para volver...",
+    "press_enter_continue": "\nPresiona Enter para continuar...",
+
+    # Sub-menú Editor Vertical
+    "editor_title": "🎨 Editor de Formatos Verticales",
+    "editor_option_1": "[bold magenta]1.[/] ✂️  Pantalla Dividida (Estilo Reacción / Gameplay arriba y abajo)",
+    "editor_option_2": "[bold blue]2.[/] 💧 Fondo Borroso Estético (Video centrado con fondo difuminado)",
+    "editor_option_3": "[bold yellow]3.[/] 🎞️  Conversión Inteligente a Vertical (Todo el video con seguimiento de rostros)",
+    "editor_option_4": "[bold red]4.[/] 🔙 Volver al Menú Principal",
+    "video_principal_ready": "[bold green]✅ Video Principal: {file}[/]",
+    "video_fondo_ready": "[bold green]✅ Video Fondo: {file}[/]",
+    "blur_ask_ai_title": "🧠 ¿Generar título con IA (basado en audio)?",
+    "blur_transcribing": "[bold green]🎙️  Transcribiendo audio para título...[/]",
+    "blur_generating_titles": "[bold magenta]✨ Generando títulos virales...[/]",
+    "manual_input": "Escribir Manualmente",
+    "error_ai_titles": "[red]❌ No se pudieron generar títulos.[/]",
+    "smart_crop_mode": "[bold yellow]🎞️  Modo: Conversión Inteligente a Vertical[/]",
+    "smart_crop_rendering": "[bold yellow]🎬 Renderizando video completo a vertical...[/]",
+    "convert_success": "[bold green]✨ Video convertido exitosamente[/]",
+
+    # Flujo de Descarga
+    "download_platform_title": "\n[bold cyan]Plataforma de Descarga:[/]",
+    "download_platform_yt": "1. [red]YouTube[/]",
+    "download_platform_tt": "2. [magenta]TikTok[/]",
+    "choose_platform": "Elige plataforma",
+    "paste_url": "[bold cyan]Pega la URL de {platform}[/]",
+    "download_success": "[bold green]✅ Video descargado en Input:[/]",
+    "download_next_step": "\n[dim]Ahora puedes seleccionarlo en la opción 2.[/]",
+    "download_error": "[bold red]❌ Error en descarga: {error}[/]",
+    "yt_downloading": "📥 Descargando video de YouTube: {url}",
+    "tt_downloading": "📥 Descargando video de TikTok: {url}",
+    "cookies_found": "🍪 Se encontraron cookies para {platform}, usándolas.",
+    "cookies_fail": "⚠️ Error al escribir archivo de cookies: {error}",
+    "cookies_manual": "🍪 Usando archivo cookies.txt manual",
+
+    # Subtítulos
+    "subs_select_video": "Video para Subtítulos",
+    "subs_selected": "[bold green]✅ Archivo seleccionado: {file}[/]",
+    "subs_position": "📍 Posición de subtítulos [bottom/middle/top]",
+    "subs_style_title": "\n[bold yellow]Estilo de Subtítulos:[/]",
+    "subs_style_phrases": "1. [cyan]Frases (Estándar)[/]: Agrupa palabras para lectura cómoda.",
+    "subs_style_dynamic": "2. [magenta]Dinámico (Palabra por palabra)[/]: Rápido, estilo TikTok.",
+    "subs_choose_style": "Elige estilo",
+    "subs_rendering": "[bold blue]🎬 Renderizando subtítulos...[/]",
+    "subs_visual_style": "Elige un estilo visual",
+
+    # Efectos Hook
+    "hook_select_video": "Video para Efecto 'Hook'",
+    "hook_ask": "✨ ¿Quieres agregar un efecto de entrada 'Hook'?",
+    "hook_select_effect": "\n[bold magenta]Selecciona un Efecto de Entrada:[/]",
+    "hook_rendering": "[bold magenta]🎬 Renderizando hook...[/]",
+
+    # Música
+    "music_select_main": "Video Principal",
+    "music_select_bg": "Música de Fondo",
+    "music_vol": "Volumen de música (0.0 a 1.0)",
+    "music_mixing": "[bold red]🎵 Mezclando audio...[/]",
+
+    # Velocidad
+    "speed_select_video": "Video para Ajustar Velocidad",
+    "speed_title": "\n[bold cyan]Selecciona el Factor de Velocidad:[/]",
+    "speed_opt_1": "1. [yellow]0.5x[/] (Cámara Lenta)",
+    "speed_opt_2": "2. [yellow]0.75x[/] (Suave)",
+    "speed_opt_3": "3. [green]1.1x[/] (Retención Ligera - Recomendado)",
+    "speed_opt_4": "4. [green]1.25x[/] (Dinámico)",
+    "speed_opt_5": "5. [magenta]1.5x[/] (Rápido)",
+    "speed_opt_6": "6. [red]2.0x[/] (Doble Velocidad)",
+    "speed_opt_7": "7. [cyan]Personalizado[/]",
+    "speed_custom_input": "Ingresa el multiplicador (e.g., 1.12)",
+    "speed_adjusting": "[bold cyan]⚡ Ajustando velocidad a {factor}x...[/]",
+
+    # Silenciar
+    "mute_select_video": "Video para Quitar Audio",
+    "mute_confirm": "¿Confirmas que quieres quitar TODO el sonido?",
+    "mute_removing": "[bold cyan]🔇 Quitando audio...[/]",
+
+    # FPS
+    "fps_select_video": "Video para Convertir a 60fps",
+    "fps_converting": "[bold magenta]🎞️  Convirtiendo a 60fps...[/]",
+
+    # Eliminar Silencios
+    "silence_select_video": "Video para Eliminar Silencios",
+    "silence_config_title": "\n[bold yellow]Configuración de Silencio:[/]",
+    "silence_min_duration": "Duración mínima de silencio (ms)",
+    "silence_padding": "Margen de audio (padding ms)",
+    "silence_confirm": "¿Proceder con la eliminación de silencios?",
+    "silence_removing": "[bold cyan]✂️  Eliminando silencios...[/]",
+
+    # Social Media AI
+    "social_select_video": "Video para Generar Contenido",
+    "social_transcribing": "[bold green]🎙️  Transcribiendo audio para contexto...[/]",
+    "social_generating_titles": "[bold magenta]✨ Generando títulos virales...[/]",
+    "social_suggested_titles": "\n[bold cyan]💡 Títulos Sugeridos:[/]",
+    "social_choose_title": "Selecciona el título principal para las descripciones",
+    "social_manual_title": "[bold yellow]📝 Ingresa un título manual para las descripciones[/]",
+    "social_generating_desc": "[bold cyan]📱 Generando descripciones para redes...[/]",
+    "social_content_ready": "\n[bold green]✅ Contenido Generado:[/]",
+    "social_panel_title": "🚀 Social Media Copy",
+    "social_saved": "[bold dim]💾 Guardado en: {file}[/]",
+
+    # Clips Virales
+    "viral_start": "🚀 Iniciando Detección de Clips Virales...",
+    "viral_success": "\n[bold green]✅ Proceso finalizado[/]",
+
+    # Helpers & Rutas
+    "select_video_prompt": "\n[bold cyan]📂 {prompt}:[/]",
+    "folder_input": "1. [green]Carpeta Input[/] (Nuevos videos)",
+    "folder_output": "2. [yellow]Carpeta Output[/] (Videos ya procesados)",
+    "source_prompt": "Fuente",
+    "input_empty": "[bold red]❌ La carpeta 'input' está vacía.[/]",
+    "input_help": "[yellow]👉 Por favor, coloca videos en: {path}[/]",
+    "video_available": "\n[bold green]📹 Video disponible:[/]",
+    "use_this_video": "¿Usar este video?",
+    "videos_available_input": "\n[bold green]📹 Videos disponibles en Input:[/]",
+    "output_empty": "[bold red]❌ La carpeta 'output' está vacía.[/]",
+    "videos_available_output": "\n[bold yellow]📹 Videos en Output:[/]",
+    "select_number": "Elige el número",
+    "select_video_process": "Elige el video para procesar",
+    "media_empty": "[bold red]❌ La carpeta 'media' está vacía.[/]",
+    "media_help": "[yellow]👉 Por favor, coloca videos de fondo (gameplay) en: {path}[/]",
+    "media_available": "\n[bold magenta]🎮 Videos de Fondo Disponibles:[/]",
+    "choose_media": "Elige el video de fondo",
+    "music_empty": "[bold red]❌ La carpeta 'music' está vacía.[/]",
+    "music_help": "[yellow]👉 Por favor, coloca archivos de música en: {path}[/]",
+    "music_available": "\n[bold cyan]🎵 Música Disponible:[/]",
+    "choose_music": "Elige la música de fondo",
+    "save_path_input": "\n[dim]ℹ️  El archivo de origen está en 'input'. Guardando como nuevo archivo.[/]",
+    "name_exists": "[dim]⚠️  El nombre ya existía. Guardando como: {file}[/]",
+    "how_to_save": "\n[bold yellow]💾 ¿Cómo quieres guardar el resultado?[/]",
+    "save_new": "1. [green]Guardar como Nuevo[/]: {file}",
+    "save_overwrite_input": "2. [red]Sobrescribir Entrada[/]: {file}",
+    "save_overwrite_other": "3. [cyan]Sobrescribir Otro...[/] (Seleccionar manual)",
+    "save_option": "Opción de guardado",
+    "overwrite_warning": "[yellow]⚠️  El archivo {file} será reemplazado.[/]",
+    "overwrite_original": "[dim]✏️  Se sobrescribirá el archivo original al finalizar.[/]",
+    "no_files_overwrite": "[red]No hay archivos para sobrescribir. Usando automático.[/]",
+    
+    # Genéricos
+    "error": "[bold red]❌ Error: {error}[/]",
+    "render_confirm": "¿Proceder con Renderizado?",
+    "rendering": "🎬 Renderizando...",
+    "video_ready": "[bold green]✨ Video listo: {path}[/]",
+    "render_interrupted": "\n[yellow]⚠️ Interrumpido por usuario[/]",
+    "fatal_error": "\n[bold red]❌ Error fatal:[/]",
+    "op_not_impl": "\n[yellow]⚠️ Opción no implementada o obsoleta[/]",
+    "manual_title_prompt": "[bold yellow]📝 Ingresa título manual[/]",
+    "manual_title_obs": "[bold yellow]📝 Ingresa título (OBLIGATORIO)[/]",
+}

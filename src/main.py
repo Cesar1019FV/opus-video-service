@@ -9,6 +9,19 @@ def main():
     Main application entry point.
     Wires dependencies and launches CLI.
     """
+    # Multi-language setup
+    from src.translations.manager import get_translator
+    translator = get_translator()
+    
+    # Check if first time or settings missing
+    if not translator.settings_file.exists():
+        from rich.console import Console
+        from rich.prompt import Prompt
+        console = Console()
+        console.print("\n[bold cyan]🌐 Language Selection / Selección de Idioma[/]")
+        lang = Prompt.ask("Choose your language / Elige tu idioma", choices=["en", "es"], default="en")
+        translator.set_language(lang)
+    
     # Import CLI menu - done inside function to avoid startup circular imports
     from src.cli.menu import main_menu
     

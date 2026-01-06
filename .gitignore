@@ -23,6 +23,7 @@ output/
 downloads/
 uploads/
 cookies.txt
+settings.json
 
 # --- AI Models ---
 *.pt

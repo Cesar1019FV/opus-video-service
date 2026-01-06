@@ -10,6 +10,8 @@ from rich.console import Console
 from rich.prompt import Prompt, Confirm, IntPrompt
 
 console = Console()
+from src.translations.manager import get_translator
+t = get_translator().t
 
 
 from src.shared.config import get_config
@@ -18,11 +20,11 @@ def select_video_file(prompt="Selecciona Video de Entrada"):
     """
     Allows selecting a video from 'input' or 'output' folder with list selection.
     """
-    console.print(f"\n[bold cyan]📂 {prompt}:[/]")
-    console.print("1. [green]Carpeta Input[/] (Nuevos videos)")
-    console.print("2. [yellow]Carpeta Output[/] (Videos ya procesados)")
+    console.print(t("select_video_prompt", prompt=prompt))
+    console.print(t("folder_input"))
+    console.print(t("folder_output"))
     
-    source = Prompt.ask("Fuente", choices=["1", "2"], default="1")
+    source = Prompt.ask(t("source_prompt"), choices=["1", "2"], default="1")
     
     config = get_config()
     
@@ -37,23 +39,23 @@ def select_video_file(prompt="Selecciona Video de Entrada"):
         files = [f for f in os.listdir(input_dir) if f.lower().endswith(valid_exts)]
         
         if not files:
-            console.print(f"[bold red]❌ La carpeta 'input' está vacía.[/]")
-            console.print(f"[yellow]👉 Por favor, coloca videos en: {input_dir}[/]")
+            console.print(t("input_empty"))
+            console.print(t("input_help", path=input_dir))
             return None
         
         # Show list regardless of count
         if len(files) == 1:
-            console.print(f"\n[bold green]📹 Video disponible:[/]")
+            console.print(t("video_available"))
             console.print(f"1. {files[0]}")
-            if Confirm.ask("¿Usar este video?", default=True):
+            if Confirm.ask(t("use_this_video"), default=True):
                 return str(input_dir / files[0])
             else:
                 return None
         else:
-            console.print(f"\n[bold green]📹 Videos disponibles en Input:[/]")
+            console.print(t("videos_available_input"))
             for idx, f in enumerate(files):
                 console.print(f"[bold cyan]{idx+1}.[/] {f}")
-            choice = IntPrompt.ask("Elige el número", choices=[str(i+1) for i in range(len(files))])
+            choice = IntPrompt.ask(t("select_number"), choices=[str(i+1) for i in range(len(files))])
             return str(input_dir / files[choice-1])
 
     else:
@@ -63,17 +65,17 @@ def select_video_file(prompt="Selecciona Video de Entrada"):
         files = [f for f in os.listdir(output_dir) if f.lower().endswith(valid_exts)]
         
         if not files:
-            console.print(f"[bold red]❌ La carpeta 'output' está vacía.[/]")
+            console.print(t("output_empty"))
             return None
             
-        console.print(f"\n[bold yellow]📹 Videos en Output:[/]")
+        console.print(t("videos_available_output"))
         # Sort by modification time (newest first)
         files.sort(key=lambda x: os.path.getmtime(output_dir / x), reverse=True)
         
         for idx, f in enumerate(files):
             console.print(f"[bold cyan]{idx+1}.[/] {f}")
             
-        choice = IntPrompt.ask("Elige el video para procesar", choices=[str(i+1) for i in range(len(files))])
+        choice = IntPrompt.ask(t("select_video_process"), choices=[str(i+1) for i in range(len(files))])
         return str(output_dir / files[choice-1])
 
 
@@ -88,15 +90,15 @@ def select_media_file():
     files = [f for f in os.listdir(media_dir) if f.lower().endswith(valid_exts)]
     
     if not files:
-        console.print(f"[bold red]❌ La carpeta 'media' está vacía.[/]")
-        console.print(f"[yellow]👉 Por favor, coloca videos de fondo (gameplay) en: {media_dir}[/]")
+        console.print(t("media_empty"))
+        console.print(t("media_help", path=media_dir))
         return None
         
-    console.print(f"\n[bold magenta]🎮 Videos de Fondo Disponibles:[/]")
+    console.print(t("media_available"))
     for idx, f in enumerate(files):
         console.print(f"[bold cyan]{idx+1}.[/] {f}")
         
-    choice = IntPrompt.ask("Elige el video de fondo", choices=[str(i+1) for i in range(len(files))])
+    choice = IntPrompt.ask(t("choose_media"), choices=[str(i+1) for i in range(len(files))])
     return str(media_dir / files[choice-1])
 
 
@@ -111,15 +113,15 @@ def select_music_file():
     files = [f for f in os.listdir(music_dir) if f.lower().endswith(valid_exts)]
     
     if not files:
-        console.print(f"[bold red]❌ La carpeta 'music' está vacía.[/]")
-        console.print(f"[yellow]👉 Por favor, coloca archivos de música en: {music_dir}[/]")
+        console.print(t("music_empty"))
+        console.print(t("music_help", path=music_dir))
         return None
         
-    console.print(f"\n[bold cyan]🎵 Música Disponible:[/]")
+    console.print(t("music_available"))
     for idx, f in enumerate(files):
         console.print(f"[bold cyan]{idx+1}.[/] {f}")
         
-    choice = IntPrompt.ask("Elige la música de fondo", choices=[str(i+1) for i in range(len(files))])
+    choice = IntPrompt.ask(t("choose_music"), choices=[str(i+1) for i in range(len(files))])
     return str(music_dir / files[choice-1])
 
 
@@ -147,19 +149,19 @@ def get_save_path(input_path, default_suffix, output_dir=None):
     
     # CASE A: Input is from 'input' folder -> Force Save as New
     if abs_input.startswith(abs_input_dir):
-        console.print(f"\n[dim]ℹ️  El archivo de origen está en 'input'. Guardando como nuevo archivo.[/]")
+        console.print(t("save_path_input"))
         # Ensure unique name
         final_path = _get_unique_path(default_path)
         if final_path != default_path:
-             console.print(f"[dim]⚠️  El nombre ya existía. Guardando como: {os.path.basename(final_path)}[/]")
+             console.print(t("name_exists", file=os.path.basename(final_path)))
         return str(final_path), None
-
-    console.print(f"\n[bold yellow]💾 ¿Cómo quieres guardar el resultado?[/]")
-    console.print(f"1. [green]Guardar como Nuevo[/]: {default_name}")
-    console.print(f"2. [red]Sobrescribir Entrada[/]: {os.path.basename(input_path)}")
-    console.print(f"3. [cyan]Sobrescribir Otro...[/] (Seleccionar manual)")
+ 
+    console.print(t("how_to_save"))
+    console.print(t("save_new", file=default_name))
+    console.print(t("save_overwrite_input", file=os.path.basename(input_path)))
+    console.print(t("save_overwrite_other"))
     
-    choice = Prompt.ask("Opción de guardado", choices=["1", "2", "3"], default="1")
+    choice = Prompt.ask(t("save_option"), choices=["1", "2", "3"], default="1")
     
     target_path = str(default_path)
     
@@ -180,22 +182,22 @@ def get_save_path(input_path, default_suffix, output_dir=None):
         files.sort(key=lambda x: os.path.getmtime(output_dir / x), reverse=True)
         
         if not files:
-            console.print("[red]No hay archivos para sobrescribir. Usando automático.[/]")
+            console.print(t("no_files_overwrite"))
         else:
             for idx, f in enumerate(files):
                 console.print(f"{idx+1}. {f}")
-            sel = IntPrompt.ask("Elige archivo a sobrescribir", choices=[str(i+1) for i in range(len(files))])
+            sel = IntPrompt.ask(t("select_video_process"), choices=[str(i+1) for i in range(len(files))])
             target_path = str(output_dir / files[sel-1])
             
     # Collision handling (Only for Overwrite modes)
     if os.path.abspath(target_path) == os.path.abspath(input_path):
-        console.print("[dim]✏️  Se sobrescribirá el archivo original al finalizar.[/]")
+        console.print(t("overwrite_original"))
         timestamp = int(time.time())
         temp_path = str(output_dir / f"temp_{timestamp}_{os.path.basename(target_path)}")
         return target_path, temp_path
         
     if os.path.exists(target_path):
-         console.print(f"[yellow]⚠️  El archivo {os.path.basename(target_path)} será reemplazado.[/]")
+         console.print(t("overwrite_warning", file=os.path.basename(target_path)))
          timestamp = int(time.time())
          temp_path = str(output_dir / f"temp_{timestamp}_{os.path.basename(target_path)}")
          return target_path, temp_path
@@ -247,31 +249,32 @@ def get_video_from_input_dir():
     files = [f for f in os.listdir(input_dir) if f.lower().endswith(valid_exts)]
     
     if len(files) == 0:
-        console.print(f"[bold red]❌ La carpeta 'input' está vacía.[/]")
-        console.print(f"[yellow]👉 Por favor, coloca videos en: {input_dir}[/]")
+        console.print(t("input_empty"))
+        console.print(t("input_help", path=input_dir))
         return None
         
     if len(files) == 1:
-        console.print(f"[bold green]📹 Video disponible: {files[0]}[/]")
+        console.print(t("video_available"))
+        console.print(f"1. {files[0]}")
         return str(input_dir / files[0])
     
     # Allow selection if multiple
-    console.print(f"\n[bold green]📹 Videos disponibles en Input:[/]")
+    console.print(t("videos_available_input"))
     for idx, f in enumerate(files):
         console.print(f"[bold cyan]{idx+1}.[/] {f}")
     
-    choice = IntPrompt.ask("Elige el video a procesar", choices=[str(i+1) for i in range(len(files))])
+    choice = IntPrompt.ask(t("select_video_process"), choices=[str(i+1) for i in range(len(files))])
     return str(input_dir / files[choice-1])
 
 
 def get_entry_effect_choice():
     """Helper to ask for effect"""
-    if not Confirm.ask("✨ ¿Quieres agregar un efecto de entrada 'Hook'?", default=False):
+    if not Confirm.ask(t("hook_ask"), default=False):
         return None
         
     from src.features.effects import EFFECTS
     
-    console.print("\n[bold magenta]Selecciona un Efecto de Entrada:[/]")
+    console.print(t("hook_select_effect"))
     for key, name in EFFECTS.items():
         console.print(f"{key}. [cyan]{name}[/]")
     
@@ -282,11 +285,11 @@ def get_subtitle_style_choice():
     """Helper to ask for subtitle style"""
     from src.features.subtitles.styles import SUBTITLE_STYLES
     
-    console.print("\n[bold yellow]Estilo de Subtítulos:[/]")
+    console.print(t("subs_style_title"))
     for key, config in SUBTITLE_STYLES.items():
         console.print(f"- [cyan]{key}[/]: {config['name']}")
         
-    return Prompt.ask("Elige un estilo", choices=list(SUBTITLE_STYLES.keys()), default="default")
+    return Prompt.ask(t("subs_visual_style"), choices=list(SUBTITLE_STYLES.keys()), default="default")
 
 
 def clear_screen():

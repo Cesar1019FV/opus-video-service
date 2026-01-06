@@ -7,8 +7,12 @@ import os
 import re
 import time
 import yt_dlp
+import sys
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Optional
+
+from src.translations.manager import get_translator
+t = get_translator().t
 from .exceptions import YouTubeDownloadError, InvalidURLError
 
 
@@ -54,21 +58,23 @@ def download_youtube_video(url: str, output_dir: str = ".") -> Tuple[str, str]:
     if not url or not url.strip():
         raise InvalidURLError("Empty URL provided")
     
-    print(f"📥 Downloading video from YouTube: {url}")
+    print(t("yt_downloading", url=url))
     
     # Handle Cookies
     cookies_path = 'cookies.txt'
     cookies_env = os.environ.get("YOUTUBE_COOKIES")
     if cookies_env:
-        print("🍪 Found YOUTUBE_COOKIES env var, using it.")
+        print(t("cookies_found", platform="YouTube"))
         try:
             with open(cookies_path, 'w') as f:
                 f.write(cookies_env)
         except Exception as e:
-            print(f"⚠️ Failed to write cookies file: {e}")
+            print(t("cookies_fail", error=e))
             cookies_path = None
     elif not os.path.exists(cookies_path):
         cookies_path = None
+    else:
+        print(t("cookies_manual"))
 
     # Get video info first
     ydl_opts_info = {
